@@ -1,0 +1,120 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Core Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function userExists() {
+      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (userExists() && getUserData().role in ['admin', 'moderator'])
+      );
+    }
+    
+    function hasPermission(perm) {
+      return isAdmin() || (
+        userExists() && 
+        'permissions' in getUserData() && 
+        perm in getUserData().permissions
+      );
+    }
+
+    // 1. Enrollment Numbers (Unique Index)
+    match /enrollmentNumbers/{normalizedEnrollment} {
+      allow read: if isAuthenticated();
+      // Only allow creation if document doesn't already exist and matches caller's UID
+      allow create: if isAuthenticated() 
+                    && !exists(/databases/$(database)/documents/enrollmentNumbers/$(normalizedEnrollment))
+                    && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // 2. User Profiles
+    match /users/{userId} {
+      // Students can read their own profile; admins/moderators can read for user management
+      allow read: if isAuthenticated() && (request.auth.uid == userId || hasPermission('view_users') || isAdmin());
+      
+      // User can create or update their own profile document
+      allow create, update: if isAuthenticated() && request.auth.uid == userId;
+      
+      allow delete: if isAdmin();
+    }
+
+    // 3. Admins Collection (Direct lookup protection)
+    match /admins/{adminId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Configured directly in Firebase Console
+    }
+
+    // 4. Academic Structure (Departments, Academic Years, Sections, Subjects, Modules)
+    match /departments/{id} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    match /academicYears/{id} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    match /sections/{id} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    match /subjects/{id} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    match /modules/{id} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // 5. Published Study Materials (Readable by ALL authenticated students across sections)
+    match /materials/{materialId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // 6. Student Submissions (Strictly Private to Submitter & Reviewers)
+    match /submissions/{submissionId} {
+      allow read: if isAuthenticated() && (
+        resource.data.submittedBy == request.auth.uid || hasPermission('review_submissions') || isAdmin()
+      );
+      allow create: if isAuthenticated() 
+                    && request.resource.data.submittedBy == request.auth.uid
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.fileSize <= 52428800; // 50 MB limit
+      allow update, delete: if isAuthenticated();
+    }
+
+    // 7. Announcements, Roles & App Config
+    match /announcements/{id} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    match /roles/{id} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    match /appConfig/{id} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

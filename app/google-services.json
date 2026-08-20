@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "321947855033",
+    "project_id": "pu-materials",
+    "storage_bucket": "pu-materials.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:321947855033:android:d2e7a3d1662342a6cd1368",
+        "android_client_info": {
+          "package_name": "com.pumaterial.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2pLPYO0MHy606kxNFbbAQSniXlvRDk9E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:321947855033:android:3a45e07e852c54eccd1368",
+        "android_client_info": {
+          "package_name": "com.pumaterial.app.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2pLPYO0MHy606kxNFbbAQSniXlvRDk9E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

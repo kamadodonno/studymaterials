@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Root of internal files -->
+    <files-path name="internal_root" path="." />
+    <files-path name="internal_materials" path="materials/" />
+    <!-- Cache directory for safe temporary downloads -->
+    <cache-path name="cache_root" path="." />
+    <cache-path name="temp_downloads" path="temp_downloads/" />
+    <!-- External files directory if stored in app external files -->
+    <external-files-path name="external_root" path="." />
+    <external-files-path name="external_materials" path="materials/" />
+    <external-files-path name="external_docs" path="Documents/" />
+    <!-- External storage root for maximum compatibility with office viewers -->
+    <external-path name="external_storage" path="." />
+</paths>

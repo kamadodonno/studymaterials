@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.PUMaterial" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/background_light</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/background_light</item>
+    </style>
+</resources>

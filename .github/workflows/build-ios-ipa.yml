@@ -1,0 +1,51 @@
+name: Build iOS IPA for iPad Air (iOS 12.5.7)
+
+on:
+  push:
+    paths:
+      - 'ios/**'
+      - '.github/workflows/build-ios-ipa.yml'
+  workflow_dispatch:
+
+jobs:
+  build-ipa:
+    name: Build StudyMaterials.ipa
+    runs-on: macos-13
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_14.3.1.app/Contents/Developer
+
+      - name: Build App with Xcodebuild
+        run: |
+          cd ios
+          mkdir -p build/Payload
+          
+          # Build .app payload
+          xcodebuild clean build \
+            -project StudyMaterials.xcodeproj \
+            -scheme StudyMaterials \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE_SPECIFIER=""
+
+          # Package Payload into .ipa
+          cp -r build/DerivedData/Build/Products/Release-iphoneos/StudyMaterials.app build/Payload/
+          cd build
+          zip -r ../StudyMaterials.ipa Payload
+          cd ..
+          echo "IPA generation complete: $(ls -lh StudyMaterials.ipa)"
+
+      - name: Upload StudyMaterials.ipa Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StudyMaterials-iPad-Air-iOS12
+          path: ios/StudyMaterials.ipa
+          retention-days: 30
