@@ -7,6 +7,7 @@ class SubjectDetailViewController: UIViewController, UITableViewDelegate, UITabl
     private var materials: [Material] = []
     private let tableView = UITableView(frame: .zero, style: .grouped)
     private var docController: UIDocumentInteractionController?
+    private let loadingIndicator = UIActivityIndicatorView(style: .whiteLarge)
     
     init(subject: Subject) {
         self.subject = subject
@@ -21,7 +22,8 @@ class SubjectDetailViewController: UIViewController, UITableViewDelegate, UITabl
         title = subject.name
         
         setupTableView()
-        loadSubjectContent()
+        setupLoadingIndicator()
+        loadLiveSubjectContent()
     }
     
     private func setupTableView() {
@@ -41,14 +43,32 @@ class SubjectDetailViewController: UIViewController, UITableViewDelegate, UITabl
         ])
     }
     
-    private func loadSubjectContent() {
-        // Mock / Initial Data
-        materials = [
-            Material(id: "m1", title: "General Practice Formulas & Syllabus", description: "Direct practice notes", fileType: "pdf", fileSize: 1048576, fileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", fileName: "formulas.pdf", subjectId: subject.id, subjectName: subject.name, moduleId: "", moduleName: "General", visibility: "all", section: nil, createdAt: Date()),
-            Material(id: "m2", title: "Unit 1: Architecture & Fundamentals", description: "Unit 1 Lecture Slides", fileType: "pdf", fileSize: 2097152, fileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", fileName: "unit1_slides.pdf", subjectId: subject.id, subjectName: subject.name, moduleId: "mod1", moduleName: "Unit 1", visibility: "all", section: nil, createdAt: Date()),
-            Material(id: "m3", title: "Unit 2: Process Scheduling Notes", description: "Unit 2 Lecture Notes", fileType: "pdf", fileSize: 1572864, fileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", fileName: "unit2_notes.pdf", subjectId: subject.id, subjectName: subject.name, moduleId: "mod2", moduleName: "Unit 2", visibility: "all", section: nil, createdAt: Date())
-        ]
-        tableView.reloadData()
+    private func setupLoadingIndicator() {
+        loadingIndicator.color = Theme.primary
+        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(loadingIndicator)
+        
+        NSLayoutConstraint.activate([
+            loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
+    
+    private func loadLiveSubjectContent() {
+        loadingIndicator.startAnimating()
+        let userSection = SessionManager.shared.currentUser?.section ?? ""
+        
+        FirebaseService.shared.fetchMaterials(subjectId: subject.id, section: userSection) { [weak self] list in
+            guard let self = self else { return }
+            self.loadingIndicator.stopAnimating()
+            self.materials = list
+            self.tableView.reloadData()
+        }
+        
+        FirebaseService.shared.fetchModules(subjectId: subject.id) { [weak self] list in
+            self?.modules = list
+            self?.tableView.reloadData()
+        }
     }
     
     // MARK: - UITableView
@@ -56,7 +76,7 @@ class SubjectDetailViewController: UIViewController, UITableViewDelegate, UITabl
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if section == 0 {
-            // General direct subject files
+            // General direct subject files (where moduleId is blank)
             return materials.filter { $0.isDirectSubjectFile }.count
         } else {
             // Module files
@@ -70,14 +90,24 @@ class SubjectDetailViewController: UIViewController, UITableViewDelegate, UITabl
         label.font = UIFont.systemFont(ofSize: 13, weight: .bold)
         label.backgroundColor = Theme.background
         if section == 0 {
-            label.text = "   📁 GENERAL & PRACTICE NOTES"
+            let count = materials.filter { $0.isDirectSubjectFile }.count
+            if count == 0 { return nil }
+            label.text = "   📁 GENERAL & PRACTICE NOTES (\(count))"
         } else {
-            label.text = "   📖 MODULES & UNIT FILES"
+            let count = materials.filter { !$0.isDirectSubjectFile }.count
+            if count == 0 { return nil }
+            label.text = "   📖 MODULES & UNIT FILES (\(count))"
         }
         return label
     }
     
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat { 32 }
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        if section == 0 {
+            return materials.filter { $0.isDirectSubjectFile }.isEmpty ? 0 : 32
+        } else {
+            return materials.filter { !$0.isDirectSubjectFile }.isEmpty ? 0 : 32
+        }
+    }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "MaterialCell", for: indexPath) as! MaterialCell
@@ -101,8 +131,14 @@ class SubjectDetailViewController: UIViewController, UITableViewDelegate, UITabl
         if FileManager.default.fileExists(atPath: localUrl.path) {
             displayFile(localUrl, title: material.title, fileType: material.fileType)
         } else {
-            // Download then display
-            let alert = UIAlertController(title: "Opening...", message: "Downloading study material", preferredStyle: .alert)
+            guard !material.fileUrl.isEmpty else {
+                let errAlert = UIAlertController(title: "Notice", message: "Download URL for this material is not available yet.", preferredStyle: .alert)
+                errAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                present(errAlert, animated: true)
+                return
+            }
+            
+            let alert = UIAlertController(title: "Opening...", message: "Downloading \(material.fileName)", preferredStyle: .alert)
             present(alert, animated: true)
             
             DownloadManager.shared.downloadFile(from: material.fileUrl, materialId: material.id, fileName: material.fileName) { [weak self] result in
@@ -112,7 +148,7 @@ class SubjectDetailViewController: UIViewController, UITableViewDelegate, UITabl
                         self?.tableView.reloadData()
                         self?.displayFile(url, title: material.title, fileType: material.fileType)
                     case .failure(let err):
-                        let errAlert = UIAlertController(title: "Error", message: err.localizedDescription, preferredStyle: .alert)
+                        let errAlert = UIAlertController(title: "Download Failed", message: err.localizedDescription, preferredStyle: .alert)
                         errAlert.addAction(UIAlertAction(title: "OK", style: .default))
                         self?.present(errAlert, animated: true)
                     }
@@ -134,58 +170,5 @@ class SubjectDetailViewController: UIViewController, UITableViewDelegate, UITabl
     
     func documentInteractionControllerViewControllerForPreview(_ controller: UIDocumentInteractionController) -> UIViewController {
         return self
-    }
-}
-
-class MaterialCell: UITableViewCell {
-    private let card = CustomCardView()
-    private let titleLabel = UILabel()
-    private let metaLabel = UILabel()
-    private let badgeLabel = UILabel()
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        backgroundColor = .clear
-        selectionStyle = .none
-        
-        titleLabel.textColor = Theme.textPrimary
-        titleLabel.font = UIFont.systemFont(ofSize: 15, weight: .bold)
-        titleLabel.numberOfLines = 2
-        
-        metaLabel.textColor = Theme.textSecondary
-        metaLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        
-        badgeLabel.textColor = Theme.primary
-        badgeLabel.font = UIFont.systemFont(ofSize: 11, weight: .bold)
-        
-        let vStack = UIStackView(arrangedSubviews: [titleLabel, metaLabel, badgeLabel])
-        vStack.axis = .vertical
-        vStack.spacing = 4
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        
-        card.addSubview(vStack)
-        card.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(card)
-        
-        NSLayoutConstraint.activate([
-            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5),
-            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5),
-            
-            vStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
-            vStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
-            vStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
-            vStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12)
-        ])
-    }
-    
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    
-    func configure(material: Material, isDownloaded: Bool) {
-        titleLabel.text = material.title
-        metaLabel.text = "\(material.fileType.uppercased()) • \(material.moduleName)"
-        badgeLabel.text = isDownloaded ? "✓ Available Offline" : "☁️ Tap to download"
-        badgeLabel.textColor = isDownloaded ? Theme.secondary : Theme.primary
     }
 }
