@@ -1,13 +1,13 @@
 import UIKit
 import PDFKit
 
-class PdfViewerViewController: UIViewController {
+class PdfViewerViewController: UIViewController, UIGestureRecognizerDelegate {
 
     private let fileUrl: URL
     private let docTitle: String
     private var pdfView = PDFView()
     private var pageLabel = UILabel()
-    private var thumbnailView = PDFThumbnailView()
+    private var isHeaderHidden = false
     
     init(fileUrl: URL, title: String) {
         self.fileUrl = fileUrl
@@ -25,6 +25,7 @@ class PdfViewerViewController: UIViewController {
         setupPdfView()
         setupTopBarActions()
         setupPageIndicator()
+        setupTapGesture()
         loadDocument()
     }
     
@@ -39,7 +40,7 @@ class PdfViewerViewController: UIViewController {
         view.addSubview(pdfView)
         
         NSLayoutConstraint.activate([
-            pdfView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            pdfView.topAnchor.constraint(equalTo: view.topAnchor),
             pdfView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             pdfView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             pdfView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -70,6 +71,25 @@ class PdfViewerViewController: UIViewController {
             pageLabel.heightAnchor.constraint(equalToConstant: 28),
             pageLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 80)
         ])
+    }
+    
+    private func setupTapGesture() {
+        let singleTap = UITapGestureRecognizer(target: self, action: #selector(toggleImmersiveMode))
+        singleTap.numberOfTapsRequired = 1
+        singleTap.delegate = self
+        pdfView.addGestureRecognizer(singleTap)
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+    
+    @objc private func toggleImmersiveMode() {
+        isHeaderHidden.toggle()
+        navigationController?.setNavigationBarHidden(isHeaderHidden, animated: true)
+        UIView.animate(withDuration: 0.25) {
+            self.pageLabel.alpha = self.isHeaderHidden ? 0.0 : 1.0
+        }
     }
     
     private func loadDocument() {

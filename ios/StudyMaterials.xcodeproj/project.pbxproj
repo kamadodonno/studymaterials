@@ -25,6 +25,11 @@
 		AA0000162C00000100000001 /* PdfViewerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000162C00000100000001 /* PdfViewerViewController.swift */; };
 		AA0000172C00000100000001 /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000172C00000100000001 /* ProfileViewController.swift */; };
 		AA0000182C00000100000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB0000182C00000100000001 /* Assets.xcassets */; };
+		AA0000192C00000100000001 /* MainTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000202C00000100000001 /* MainTabBarController.swift */; };
+		AA0000202C00000100000001 /* MaterialCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000212C00000100000001 /* MaterialCell.swift */; };
+		AA0000212C00000100000001 /* SubjectListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000222C00000100000001 /* SubjectListViewController.swift */; };
+		AA0000222C00000100000001 /* DownloadsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000232C00000100000001 /* DownloadsViewController.swift */; };
+		AA0000232C00000100000001 /* SubmitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000242C00000100000001 /* SubmitViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,6 +53,11 @@
 		BB0000172C00000100000001 /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/Profile/ProfileViewController.swift; sourceTree = "<group>"; };
 		BB0000182C00000100000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BB0000192C00000100000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = App/Info.plist; sourceTree = "<group>"; };
+		BB0000202C00000100000001 /* MainTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/MainTabBarController.swift; sourceTree = "<group>"; };
+		BB0000212C00000100000001 /* MaterialCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/Components/MaterialCell.swift; sourceTree = "<group>"; };
+		BB0000222C00000100000001 /* SubjectListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/Subjects/SubjectListViewController.swift; sourceTree = "<group>"; };
+		BB0000232C00000100000001 /* DownloadsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/Downloads/DownloadsViewController.swift; sourceTree = "<group>"; };
+		BB0000242C00000100000001 /* SubmitViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/Submit/SubmitViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +99,11 @@
 				BB0000152C00000100000001 /* SubjectDetailViewController.swift */,
 				BB0000162C00000100000001 /* PdfViewerViewController.swift */,
 				BB0000172C00000100000001 /* ProfileViewController.swift */,
+				BB0000202C00000100000001 /* MainTabBarController.swift */,
+				BB0000212C00000100000001 /* MaterialCell.swift */,
+				BB0000222C00000100000001 /* SubjectListViewController.swift */,
+				BB0000232C00000100000001 /* DownloadsViewController.swift */,
+				BB0000242C00000100000001 /* SubmitViewController.swift */,
 				BB0000182C00000100000001 /* Assets.xcassets */,
 				BB0000192C00000100000001 /* Info.plist */,
 			);
@@ -189,6 +204,11 @@
 				AA0000152C00000100000001 /* SubjectDetailViewController.swift in Sources */,
 				AA0000162C00000100000001 /* PdfViewerViewController.swift in Sources */,
 				AA0000172C00000100000001 /* ProfileViewController.swift in Sources */,
+				AA0000192C00000100000001 /* MainTabBarController.swift in Sources */,
+				AA0000202C00000100000001 /* MaterialCell.swift in Sources */,
+				AA0000212C00000100000001 /* SubjectListViewController.swift in Sources */,
+				AA0000222C00000100000001 /* DownloadsViewController.swift in Sources */,
+				AA0000232C00000100000001 /* SubmitViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

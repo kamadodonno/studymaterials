@@ -5,6 +5,7 @@ class FirebaseService {
     
     private let projectId = "pu-materials"
     private let baseUrl = "https://firestore.googleapis.com/v1/projects/pu-materials/databases/(default)/documents"
+    private let storageBucket = "pu-materials.firebasestorage.app"
     
     private init() {}
     
@@ -149,7 +150,7 @@ class FirebaseService {
                     
                     let visibility = self.parseString(fields["visibility"]) ?? "all"
                     let targetSection = self.parseString(fields["section"])
-                    if visibility == "section" && targetSection != nil && targetSection != section {
+                    if visibility == "section" && targetSection != nil && !targetSection!.isEmpty && targetSection != section {
                         return nil
                     }
                     
@@ -218,7 +219,7 @@ class FirebaseService {
                     
                     let targetVisibility = self.parseString(fields["targetVisibility"]) ?? "all"
                     let targetSection = self.parseString(fields["targetSection"])
-                    if targetVisibility == "section" && targetSection != nil && targetSection != section {
+                    if targetVisibility == "section" && targetSection != nil && !targetSection!.isEmpty && targetSection != section {
                         return nil
                     }
                     
@@ -240,6 +241,131 @@ class FirebaseService {
                 DispatchQueue.main.async { completion(announcements) }
             } catch {
                 DispatchQueue.main.async { completion([]) }
+            }
+        }.resume()
+    }
+    
+    // MARK: - Upload File to Firebase Storage & Create Material in Firestore
+    func uploadMaterial(
+        fileData: Data,
+        fileName: String,
+        fileType: String,
+        title: String,
+        description: String,
+        subjectId: String,
+        subjectName: String,
+        moduleId: String,
+        moduleName: String,
+        section: String?,
+        uploadedByName: String,
+        completion: @escaping (Result<String, Error>) -> Void
+    ) {
+        let safeName = "\(UUID().uuidString)_\(fileName)"
+        let encodedPath = "materials%2F\(safeName)"
+        let uploadUrlStr = "https://firebasestorage.googleapis.com/v0/b/\(storageBucket)/o?uploadType=media&name=\(encodedPath)"
+        
+        guard let uploadUrl = URL(string: uploadUrlStr) else {
+            completion(.failure(NSError(domain: "FirebaseService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid upload URL"])))
+            return
+        }
+        
+        var request = URLRequest(url: uploadUrl)
+        request.httpMethod = "POST"
+        request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
+        request.httpBody = fileData
+        
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let self = self else { return }
+            if let error = error {
+                DispatchQueue.main.async { completion(.failure(error)) }
+                return
+            }
+            
+            guard let data = data,
+                  let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+                  let downloadToken = json["downloadTokens"] as? String ?? json["name"] as? String else {
+                DispatchQueue.main.async {
+                    completion(.failure(NSError(domain: "FirebaseService", code: -2, userInfo: [NSLocalizedDescriptionKey: "Failed to parse Storage upload response"])))
+                }
+                return
+            }
+            
+            let downloadUrl = "https://firebasestorage.googleapis.com/v0/b/\(self.storageBucket)/o/\(encodedPath)?alt=media&token=\(downloadToken)"
+            
+            self.createFirestoreMaterialDoc(
+                title: title,
+                description: description,
+                fileName: fileName,
+                fileType: fileType,
+                fileSize: fileData.count,
+                downloadUrl: downloadUrl,
+                subjectId: subjectId,
+                subjectName: subjectName,
+                moduleId: moduleId,
+                moduleName: moduleName,
+                section: section,
+                uploadedByName: uploadedByName,
+                completion: completion
+            )
+        }.resume()
+    }
+    
+    private func createFirestoreMaterialDoc(
+        title: String,
+        description: String,
+        fileName: String,
+        fileType: String,
+        fileSize: Int,
+        downloadUrl: String,
+        subjectId: String,
+        subjectName: String,
+        moduleId: String,
+        moduleName: String,
+        section: String?,
+        uploadedByName: String,
+        completion: @escaping (Result<String, Error>) -> Void
+    ) {
+        guard let url = URL(string: "\(baseUrl)/materials") else {
+            completion(.failure(NSError(domain: "FirebaseService", code: -3, userInfo: [NSLocalizedDescriptionKey: "Invalid Firestore URL"])))
+            return
+        }
+        
+        var fields: [String: Any] = [
+            "title": ["stringValue": title],
+            "description": ["stringValue": description],
+            "fileName": ["stringValue": fileName],
+            "fileType": ["stringValue": fileType.lowercased()],
+            "fileSize": ["integerValue": "\(fileSize)"],
+            "downloadUrl": ["stringValue": downloadUrl],
+            "storagePath": ["stringValue": "materials/\(fileName)"],
+            "subjectId": ["stringValue": subjectId],
+            "subjectName": ["stringValue": subjectName],
+            "moduleId": ["stringValue": moduleId],
+            "moduleName": ["stringValue": moduleName],
+            "visibility": ["stringValue": section == nil || section!.isEmpty ? "all" : "section"],
+            "uploadedByName": ["stringValue": uploadedByName],
+            "isActive": ["booleanValue": true],
+            "version": ["integerValue": "1"]
+        ]
+        
+        if let sec = section, !sec.isEmpty {
+            fields["section"] = ["stringValue": sec]
+        }
+        
+        let body: [String: Any] = ["fields": fields]
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                DispatchQueue.main.async { completion(.failure(error)) }
+                return
+            }
+            DispatchQueue.main.async {
+                completion(.success("Material uploaded successfully!"))
             }
         }.resume()
     }
