@@ -2,25 +2,22 @@ name: Build iOS IPA for iPad Air (iOS 12.5.7)
 
 on:
   push:
-    paths:
-      - 'ios/**'
-      - '.github/workflows/build-ios-ipa.yml'
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
   build-ipa:
     name: Build StudyMaterials.ipa
-    runs-on: macos-13
+    runs-on: macos-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Select Xcode Version
-        run: sudo xcode-select -s /Applications/Xcode_14.3.1.app/Contents/Developer
-
       - name: Build App with Xcodebuild
         run: |
+          echo "Active Xcode: $(xcode-select -p)"
           cd ios
           mkdir -p build/Payload
           
@@ -29,15 +26,22 @@ jobs:
             -project StudyMaterials.xcodeproj \
             -scheme StudyMaterials \
             -configuration Release \
-            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
             -derivedDataPath build/DerivedData \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             PROVISIONING_PROFILE_SPECIFIER=""
 
-          # Package Payload into .ipa
-          cp -r build/DerivedData/Build/Products/Release-iphoneos/StudyMaterials.app build/Payload/
+          # Locate built .app
+          APP_PATH=$(find build/DerivedData/Build/Products/Release-iphoneos -name "*.app" -maxdepth 1 | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            APP_PATH=$(find build/DerivedData -name "*.app" | head -n 1)
+          fi
+          echo "Found app at: $APP_PATH"
+
+          # Package into .ipa
+          cp -r "$APP_PATH" build/Payload/
           cd build
           zip -r ../StudyMaterials.ipa Payload
           cd ..
