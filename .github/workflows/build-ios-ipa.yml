@@ -21,22 +21,23 @@ jobs:
           cd ios
           mkdir -p build/Payload
           
-          # Build .app payload
+          # Build .app payload with xcodebuild
           xcodebuild clean build \
             -project StudyMaterials.xcodeproj \
-            -scheme StudyMaterials \
+            -target StudyMaterials \
             -configuration Release \
-            -destination "generic/platform=iOS" \
+            -sdk iphoneos \
             -derivedDataPath build/DerivedData \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
             PROVISIONING_PROFILE_SPECIFIER=""
 
           # Locate built .app
-          APP_PATH=$(find build/DerivedData/Build/Products/Release-iphoneos -name "*.app" -maxdepth 1 | head -n 1)
+          APP_PATH=$(find build/DerivedData -name "StudyMaterials.app" -type d | head -n 1)
           if [ -z "$APP_PATH" ]; then
-            APP_PATH=$(find build/DerivedData -name "*.app" | head -n 1)
+            APP_PATH=$(find build/DerivedData -name "*.app" -type d | head -n 1)
           fi
           echo "Found app at: $APP_PATH"
 
