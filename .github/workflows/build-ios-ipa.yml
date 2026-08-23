@@ -21,12 +21,12 @@ jobs:
           cd ios
           mkdir -p build/Payload
           
-          # Build .app payload with xcodebuild
+          # Build .app payload with xcodebuild using -scheme
           xcodebuild clean build \
             -project StudyMaterials.xcodeproj \
-            -target StudyMaterials \
+            -scheme StudyMaterials \
             -configuration Release \
-            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
             -derivedDataPath build/DerivedData \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
