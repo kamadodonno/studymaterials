@@ -39,8 +39,7 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: avatarButton)
         
-        let reorderBtn = UIBarButtonItem(image: UIImage(named: "arrow.up.arrow.down"), style: .plain, target: self, action: #selector(toggleReorder))
-        reorderBtn.title = "Reorder"
+        let reorderBtn = UIBarButtonItem(title: "Reorder", style: .plain, target: self, action: #selector(toggleReorder))
         navigationItem.leftBarButtonItem = reorderBtn
     }
     
