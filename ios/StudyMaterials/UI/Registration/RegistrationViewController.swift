@@ -162,8 +162,10 @@ class RegistrationViewController: UIViewController, UIPickerViewDelegate, UIPick
         let other = otherSectionField.text?.trimmingCharacters(in: .whitespacesAndNewlines)
         SessionManager.shared.saveUser(name: name, enrollment: enrollment, section: selectedSection, otherSection: other)
         
-        let homeVC = HomeViewController()
-        navigationController?.setViewControllers([homeVC], animated: true)
+        if let window = UIApplication.shared.keyWindow {
+            window.rootViewController = MainTabBarController()
+            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
+        }
     }
     
     private func showAlert(message: String) {

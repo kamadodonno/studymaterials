@@ -116,8 +116,12 @@ class ProfileViewController: UIViewController {
         let alert = UIAlertController(title: "Reset Profile?", message: "This will log you out of this session. Downloaded files remain intact.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Reset", style: .destructive, handler: { [weak self] _ in
             SessionManager.shared.clearSession()
-            let regVC = RegistrationViewController()
-            self?.navigationController?.setViewControllers([regVC], animated: true)
+            if let window = UIApplication.shared.keyWindow {
+                let regVC = RegistrationViewController()
+                let nav = UINavigationController(rootViewController: regVC)
+                window.rootViewController = nav
+                UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
+            }
         }))
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         present(alert, animated: true)

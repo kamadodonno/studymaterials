@@ -30,6 +30,7 @@
 		AA0000212C00000100000001 /* SubjectListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000222C00000100000001 /* SubjectListViewController.swift */; };
 		AA0000222C00000100000001 /* DownloadsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000232C00000100000001 /* DownloadsViewController.swift */; };
 		AA0000232C00000100000001 /* SubmitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000242C00000100000001 /* SubmitViewController.swift */; };
+		AA0000242C00000100000001 /* SubjectCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000252C00000100000001 /* SubjectCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -58,6 +59,7 @@
 		BB0000222C00000100000001 /* SubjectListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/Subjects/SubjectListViewController.swift; sourceTree = "<group>"; };
 		BB0000232C00000100000001 /* DownloadsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/Downloads/DownloadsViewController.swift; sourceTree = "<group>"; };
 		BB0000242C00000100000001 /* SubmitViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/Submit/SubmitViewController.swift; sourceTree = "<group>"; };
+		BB0000252C00000100000001 /* SubjectCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/Components/SubjectCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +103,7 @@
 				BB0000172C00000100000001 /* ProfileViewController.swift */,
 				BB0000202C00000100000001 /* MainTabBarController.swift */,
 				BB0000212C00000100000001 /* MaterialCell.swift */,
+				BB0000252C00000100000001 /* SubjectCell.swift */,
 				BB0000222C00000100000001 /* SubjectListViewController.swift */,
 				BB0000232C00000100000001 /* DownloadsViewController.swift */,
 				BB0000242C00000100000001 /* SubmitViewController.swift */,
@@ -206,6 +209,7 @@
 				AA0000172C00000100000001 /* ProfileViewController.swift in Sources */,
 				AA0000192C00000100000001 /* MainTabBarController.swift in Sources */,
 				AA0000202C00000100000001 /* MaterialCell.swift in Sources */,
+				AA0000242C00000100000001 /* SubjectCell.swift in Sources */,
 				AA0000212C00000100000001 /* SubjectListViewController.swift in Sources */,
 				AA0000222C00000100000001 /* DownloadsViewController.swift in Sources */,
 				AA0000232C00000100000001 /* SubmitViewController.swift in Sources */,
