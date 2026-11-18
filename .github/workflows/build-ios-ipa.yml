@@ -5,6 +5,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-ipa:
     name: Build StudyMaterials.ipa
@@ -53,4 +56,18 @@ jobs:
         with:
           name: StudyMaterials-iPad-Air-iOS12
           path: ios/StudyMaterials.ipa
-          retention-days: 30
+          retention-days: 90
+
+      - name: Publish to GitHub Releases (Never Expires)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="v1.0.0-latest"
+          gh release delete $TAG_NAME --yes 2>/dev/null || true
+          git tag -d $TAG_NAME 2>/dev/null || true
+          git push origin :refs/tags/$TAG_NAME 2>/dev/null || true
+          
+          gh release create $TAG_NAME ios/StudyMaterials.ipa \
+            --title "Study Materials iOS App (Latest)" \
+            --notes "Permanent IPA download for iPad Air (iOS 12+) and newer iOS devices. Connected directly to live Firebase."
